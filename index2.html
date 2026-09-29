@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Smartwatch Configurator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* Smartwatch Preview Area */
+        .preview-area {
+            perspective: 1000px;
+        }
+
+        .watch-container {
+            position: relative;
+            width: 220px;
+            height: 400px;
+            cursor: grab;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .watch-container:active {
+            cursor: grabbing;
+        }
+
+        .watch-container.is-hovered {
+            transform: scale(1.08) rotateY(-5deg) rotateX(5deg);
+        }
+
+        /* Watch Band */
+        .watch-band {
+            position: absolute;
+            width: 120px;
+            height: 380px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #1f2937, #111827);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            transition: background 0.5s ease;
+            z-index: 1;
+        }
+
+        /* Watch Face */
+        .watch-face {
+            position: relative;
+            width: 180px;
+            height: 220px;
+            background-color: #000;
+            border-radius: 40px;
+            border: 8px solid #334155;
+            z-index: 2;
+            box-shadow:
+                inset 0 0 20px rgba(255, 255, 255, 0.1),
+                0 20px 25px -5px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Interactive Glare */
+        .watch-glare {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                    rgba(255, 255, 255, 0.4) 0%,
+                    rgba(255, 255, 255, 0) 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .watch-container.is-hovered .watch-glare {
+            opacity: 1;
+        }
+
+        /* Screen Content */
+        .screen-content {
+            z-index: 3;
+            text-align: center;
+            color: #fff;
+            width: 100%;
+            padding: 10px;
+            pointer-events: none;
+        }
+
+        .digital-time {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .engraving-text {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            min-height: 1.2em;
+        }
+
+        /* Drop Zone Styles */
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-active {
+            border-color: #0ea5e9;
+            background-color: #f0f9ff;
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1);
+        }
+
+        /* Custom Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast-message {
+            background-color: #1e293b;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateX(120%);
+            animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes slideInToast {
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .toast-message.fade-out {
+            animation: fadeOutToast 0.3s ease forwards;
+        }
+
+        @keyframes fadeOutToast {
+            to {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
+
+        /* Disable text selection on UI elements */
+        .no-select {
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen pb-12">
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-slate-200 py-6 mb-8 shadow-sm">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Product Configurator</h1>
+            <p class="text-slate-500 mt-1">Design your Lumina Smartwatch and drag it to your cart.</p>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="container mx-auto px-4 max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Left: Interactive Preview (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            <div
+                class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex items-center justify-center min-h-[500px] preview-area">
+
+                <!-- Draggable Watch Container -->
+                <div id="watchElement" class="watch-container" draggable="true"
+                    aria-label="Interactive smartwatch preview. Drag to add to cart.">
+                    <div id="watchBand" class="watch-band"></div>
+                    <div class="watch-face">
+                        <div id="watchGlare" class="watch-glare"></div>
+                        <div class="screen-content">
+                            <div class="digital-time">10:09</div>
+                            <div id="engravingDisplay" class="engraving-text">Lumina</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="text-center text-sm text-slate-500 no-select">
+                <span class="inline-block bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                    💡 <strong>Pro Tip:</strong> Hover to view glare, drag to add to cart.
+                </span>
+            </div>
+        </section>
+
+        <!-- Right: Configurator Form & Cart (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Lumina Smartwatch</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">In Stock</span>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-bold text-brand-600">$299</span>
+                </div>
+
+                <div id="productDescription"
+                    class="text-slate-600 leading-relaxed text-sm p-3 bg-slate-50 rounded-lg border border-slate-100 selection:bg-brand-100 selection:text-brand-900">
+                    The Lumina Smartwatch redefines wearable tech. Featuring an always-on Retina display, advanced
+                    fitness tracking, and a premium aerospace-grade casing.
+                    <br><br>
+                    <em>Note: This text is protected. Copying and cutting are disabled.</em>
+                </div>
+            </div>
+
+            <form id="configForm"
+                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6">
+
+                <!-- Variant Selection -->
+                <div>
+                    <label for="colorSelect" class="block text-sm font-semibold text-slate-700 mb-2">Band Color</label>
+                    <div class="relative">
+                        <select id="colorSelect" name="color"
+                            class="w-full appearance-none bg-white border border-slate-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all cursor-pointer font-medium text-slate-700">
+                            <option value="black" data-gradient="linear-gradient(145deg, #1f2937, #030712)">Midnight
+                                Black</option>
+                            <option value="blue" data-gradient="linear-gradient(145deg, #2563eb, #1e3a8a)">Ocean Blue
+                            </option>
+                            <option value="red" data-gradient="linear-gradient(145deg, #dc2626, #7f1d1d)">Crimson Red
+                            </option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Engraving Input -->
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label for="engravingInput" class="block text-sm font-semibold text-slate-700">Custom
+                            Engraving</label>
+                        <span id="charCounter" class="text-xs font-medium text-slate-500">0 / 12</span>
+                    </div>
+                    <input type="text" id="engravingInput" name="engraving" maxlength="12" placeholder="e.g. LUMINA"
+                        class="w-full bg-white border border-slate-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-slate-900 placeholder:text-slate-400 uppercase"
+                        autocomplete="off">
+                </div>
+
+                <!-- Form Controls -->
+                <div class="flex gap-4 pt-2 mt-2 border-t border-slate-100">
+                    <button type="submit"
+                        class="flex-1 bg-brand-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-700 active:bg-brand-800 transition-colors shadow-sm">
+                        Submit Configuration
+                    </button>
+                    <button type="reset"
+                        class="px-6 bg-white border border-slate-300 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors">
+                        Reset
+                    </button>
+                </div>
+            </form>
+
+            <div id="cartArea"
+                class="drop-zone bg-white rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[160px]">
+                <div id="cartIcon" class="mb-3 text-slate-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto pointer-events-none" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <h3 id="cartTitle" class="text-lg font-semibold text-slate-700 pointer-events-none">Drop Area / Cart
+                </h3>
+                <p id="cartSubtitle" class="text-sm text-slate-500 mt-1 pointer-events-none">Drag the Lumina Smartwatch
+                    here to add it to your cart.</p>
+
+                <!-- Hidden cart contents list -->
+                <ul id="cartList" class="hidden w-full mt-5 space-y-3 text-left">
+                    <!-- Dynamic cart items will appear here -->
+                </ul>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        /**
+         * INTERACTIVE PRODUCT CONFIGURATOR LOGIC
+         * Fulfills academic lab requirements for HTML/CSS/Vanilla JS and Browser Events.
+         */
+
+        // -- DOM Elements Selection --
+        const productDescription = document.getElementById('productDescription');
+        const colorSelect = document.getElementById('colorSelect');
+        const watchBand = document.getElementById('watchBand');
+        const engravingInput = document.getElementById('engravingInput');
+        const engravingDisplay = document.getElementById('engravingDisplay');
+        const charCounter = document.getElementById('charCounter');
+        const watchElement = document.getElementById('watchElement');
+
+        const configForm = document.getElementById('configForm');
+
+        const cartArea = document.getElementById('cartArea');
+        const cartList = document.getElementById('cartList');
+        const cartTitle = document.getElementById('cartTitle');
+        const cartSubtitle = document.getElementById('cartSubtitle');
+        const cartIcon = document.getElementById('cartIcon');
+        const toastContainer = document.getElementById('toast-container');
+
+        let cartItems = [];
+
+        // -- Utility: Custom Toast Notifications --
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+
+            // Add emoji based on type for better UX
+            let icon = 'ℹ️';
+            if (type === 'error') icon = '❌';
+            if (type === 'success') icon = '✅';
+            if (type === 'warning') icon = '⚠️';
+
+            toast.innerHTML = `<span class="mr-2">${icon}</span> ${message}`;
+            toastContainer.appendChild(toast);
+
+            // Auto-remove toast after 3.5 seconds
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3500);
+        }
+
+        /**
+         * REQUIREMENT 1: Product Info & Copy/Cut Prevention
+         * Events Used: 'copy', 'cut'
+         */
+        function preventTextExtraction(event) {
+            event.preventDefault(); // Stop the default copy/cut behavior
+            showToast('Text extraction is disabled for this description.', 'warning');
+        }
+        productDescription.addEventListener('copy', preventTextExtraction);
+        productDescription.addEventListener('cut', preventTextExtraction);
+
+        /**
+         * REQUIREMENT 2: Variant Selection
+         * Event Used: 'change'
+         */
+        colorSelect.addEventListener('change', (event) => {
+            const selectedOption = event.target.options[event.target.selectedIndex];
+            const gradient = selectedOption.getAttribute('data-gradient');
+
+            // Update the CSS of the watch band
+            watchBand.style.background = gradient;
+            showToast(`Band color changed to ${selectedOption.text}.`, 'info');
+        });
+
+        /**
+         * REQUIREMENT 3: Custom Engraving
+         * Event Used: 'input'
+         */
+        engravingInput.addEventListener('input', (event) => {
+            let text = event.target.value.toUpperCase();
+
+            // Update display real-time
+            engravingDisplay.textContent = text || 'LUMINA';
+
+            // Update character count
+            charCounter.textContent = `${text.length} / 12`;
+
+            // Visual feedback if limit reached
+            if (text.length === 12) {
+                charCounter.classList.add('text-red-500');
+                charCounter.classList.remove('text-slate-500');
+            } else {
+                charCounter.classList.add('text-slate-500');
+                charCounter.classList.remove('text-red-500');
+            }
+        });
+
+        /**
+         * REQUIREMENT 4 & 5: Interactive Preview & Hover Interactivity
+         * Events Used: 'mousemove', 'mouseenter', 'mouseleave'
+         */
+        // 4. Pointer position relative calculation
+        watchElement.addEventListener('mousemove', (event) => {
+            const rect = watchElement.getBoundingClientRect();
+
+            // Calculate relative X and Y as percentages
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+            // Apply coordinates to CSS custom properties for the radial gradient
+            watchElement.style.setProperty('--mouse-x', `${x}%`);
+            watchElement.style.setProperty('--mouse-y', `${y}%`);
+        });
+
+        // 5. Hover state toggles
+        watchElement.addEventListener('mouseenter', () => {
+            watchElement.classList.add('is-hovered');
+        });
+
+        watchElement.addEventListener('mouseleave', () => {
+            watchElement.classList.remove('is-hovered');
+            // Reset glare position to center
+            watchElement.style.setProperty('--mouse-x', `50%`);
+            watchElement.style.setProperty('--mouse-y', `50%`);
+        });
+
+        /**
+         * REQUIREMENT 6: Drag-and-Drop
+         * Events Used: 'dragstart', 'dragover', 'dragenter', 'dragleave', 'drop'
+         */
+
+        // Setup dragged data
+        watchElement.addEventListener('dragstart', (event) => {
+            event.dataTransfer.setData('text/plain', 'lumina-watch');
+            event.dataTransfer.effectAllowed = 'copy';
+        });
+
+        // Necessary to allow dropping
+        cartArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+        });
+
+        // Visual feedback when entering drop zone
+        cartArea.addEventListener('dragenter', (event) => {
+            event.preventDefault();
+            cartArea.classList.add('drag-active');
+            cartIcon.classList.add('text-brand-500');
+            cartIcon.classList.remove('text-slate-300');
+        });
+
+        // Visual feedback when leaving drop zone
+        cartArea.addEventListener('dragleave', () => {
+            cartArea.classList.remove('drag-active');
+            cartIcon.classList.remove('text-brand-500');
+            cartIcon.classList.add('text-slate-300');
+        });
+
+        // Handle the drop action
+        cartArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+
+            // Revert drop zone visual state
+            cartArea.classList.remove('drag-active');
+            cartIcon.classList.remove('text-brand-500');
+            cartIcon.classList.add('text-slate-300');
+
+            const draggedData = event.dataTransfer.getData('text/plain');
+
+            if (draggedData === 'lumina-watch') {
+                addToCart();
+                showToast('Item successfully added to cart!', 'success');
+            }
+        });
+
+        // Helper function to process adding to cart
+        function addToCart() {
+            const selectedColor = colorSelect.options[colorSelect.selectedIndex].text;
+            const engraving = engravingInput.value.toUpperCase() || 'None';
+
+            cartItems.push({ color: selectedColor, engraving: engraving, price: 299 });
+
+            // Update Cart UI
+            cartTitle.textContent = `Cart (${cartItems.length} items)`;
+            cartSubtitle.classList.add('hidden');
+            cartList.classList.remove('hidden');
+
+            // Render list
+            const listItem = document.createElement('li');
+            listItem.className = 'flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm';
+            listItem.innerHTML = `
+                <div>
+                    <span class="font-semibold text-slate-800">Lumina (${selectedColor})</span>
+                    <div class="text-xs text-slate-500 mt-0.5">Engraving: ${engraving}</div>
+                </div>
+                <span class="font-bold text-slate-700">$299</span>
+            `;
+            cartList.appendChild(listItem);
+        }
+
+        /**
+         * REQUIREMENT 7: Form Submission
+         * Event Used: 'submit'
+         */
+        configForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent page reload
+
+            // Basic validation
+            if (!colorSelect.value) {
+                showToast('Please select a band color.', 'error');
+                return;
+            }
+
+            if (engravingInput.value.length > 12) {
+                showToast('Engraving exceeds 12 characters.', 'error');
+                return;
+            }
+
+            // Simulate form processing
+            showToast('Configuration submitted successfully! Finalizing order...', 'success');
+        });
+
+        /**
+         * REQUIREMENT 8: Form Reset
+         * Event Used: 'reset'
+         */
+        configForm.addEventListener('reset', (event) => {
+            // Note: We use setTimeout so our manual DOM updates happen 
+            // *after* the browser natively clears the form inputs.
+            setTimeout(() => {
+                // Revert Watch Band to default (Black)
+                const defaultOption = colorSelect.querySelector('option[value="black"]');
+                watchBand.style.background = defaultOption.getAttribute('data-gradient');
+
+                // Revert Engraving Display & Counter
+                engravingDisplay.textContent = 'LUMINA';
+                charCounter.textContent = '0 / 12';
+                charCounter.classList.add('text-slate-500');
+                charCounter.classList.remove('text-red-500');
+
+                // Clear Cart Data
+                cartItems = [];
+                cartList.innerHTML = '';
+                cartList.classList.add('hidden');
+                cartTitle.textContent = 'Drop Area / Cart';
+                cartSubtitle.classList.remove('hidden');
+
+                showToast('Configurator has been reset to defaults.', 'info');
+            }, 0);
+        });
+
+    </script>
+</body>
+
+</html>

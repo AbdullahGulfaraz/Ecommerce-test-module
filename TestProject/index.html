@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Smartwatch Configurator</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="antialiased min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 py-6 mb-8 shadow-sm">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Product Configurator</h1>
+            <p class="text-slate-500 mt-1">Design your Lumina Smartwatch and drag it to your cart.</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container mx-auto px-4 max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Left: Watch Preview -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex items-center justify-center min-h-[500px] preview-box">
+
+                <!-- Draggable Watch -->
+                <div id="watch" class="watch-box" draggable="true">
+                    <div id="band" class="band"></div>
+                    <div class="screen-frame">
+                        <div id="glare" class="glare"></div>
+                        <div class="screen-text">
+                            <div class="clock">10:09</div>
+                            <div id="textPreview" class="engraving">Lumina</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="text-center text-sm text-slate-500 no-select">
+                <span class="inline-block bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                    💡 <strong>Pro Tip:</strong> Move your mouse over the watch to see the shine, drag it to the cart.
+                </span>
+            </div>
+        </section>
+
+        <!-- Right: Settings Form & Cart -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Lumina Smartwatch</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">In Stock</span>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-bold text-brand-600">$299</span>
+                </div>
+
+                <div id="infoText"
+                    class="text-slate-600 leading-relaxed text-sm p-3 bg-slate-50 rounded-lg border border-slate-100 selection:bg-brand-100 selection:text-brand-900">
+                    The Lumina Smartwatch redefines wearable tech. Featuring an always-on Retina display, advanced
+                    fitness tracking, and a premium aerospace-grade casing.
+                    <br><br>
+                    <em>Note: Copying or cutting this text is disabled.</em>
+                </div>
+            </div>
+
+            <!-- Configuration Form -->
+            <form id="watchForm"
+                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6">
+
+                <!-- Color Options -->
+                <div>
+                    <label for="colorPicker" class="block text-sm font-semibold text-slate-700 mb-2">Band Color</label>
+                    <div class="relative">
+                        <select id="colorPicker" name="color"
+                            class="w-full appearance-none bg-white border border-slate-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all cursor-pointer font-medium text-slate-700">
+                            <option value="black" data-gradient="linear-gradient(145deg, #1f2937, #030712)">Midnight Black</option>
+                            <option value="blue" data-gradient="linear-gradient(145deg, #2563eb, #1e3a8a)">Ocean Blue</option>
+                            <option value="red" data-gradient="linear-gradient(145deg, #dc2626, #7f1d1d)">Crimson Red</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Text Input -->
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label for="customText" class="block text-sm font-semibold text-slate-700">Custom Engraving</label>
+                        <span id="textCount" class="text-xs font-medium text-slate-500">0 / 12</span>
+                    </div>
+                    <input type="text" id="customText" name="engraving" maxlength="12" placeholder="e.g. LUMINA"
+                        class="w-full bg-white border border-slate-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-slate-900 placeholder:text-slate-400 uppercase"
+                        autocomplete="off">
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-4 pt-2 mt-2 border-t border-slate-100">
+                    <button type="submit"
+                        class="flex-1 bg-brand-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-700 active:bg-brand-800 transition-colors shadow-sm">
+                        Submit Order
+                    </button>
+                    <button type="reset"
+                        class="px-6 bg-white border border-slate-300 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors">
+                        Reset
+                    </button>
+                </div>
+            </form>
+
+            <!-- Cart / Drop Zone -->
+            <div id="cart"
+                class="drop-target bg-white rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[160px]">
+                <div id="cartIcon" class="mb-3 text-slate-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto pointer-events-none" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <h3 id="cartTitle" class="text-lg font-semibold text-slate-700 pointer-events-none">Cart</h3>
+                <p id="cartSubtitle" class="text-sm text-slate-500 mt-1 pointer-events-none">Drag the watch here to add it to your cart.</p>
+
+                <ul id="cartItemsList" class="hidden w-full mt-5 space-y-3 text-left"></ul>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notifications"></div>
+
+    <!-- JavaScript File -->
+    <script src="script.js"></script>
+</body>
+
+</html>
