@@ -1,171 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina Smartwatch Configurator</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tidewell Flask – Custom Engraved Bottle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
+<body data-tier="free">
+  <header class="topbar">
+    <a class="brand" href="#product">Tidewell</a>
+    <nav aria-label="Sections">
+      <a href="#product">Product</a>
+      <a href="#video">Film</a>
+      <a href="#premium">Premium</a>
+    </nav>
+    <div class="status" id="statusPill" aria-live="polite">
+      <svg id="premiumBadge" viewBox="0 0 40 40" width="26" height="26" role="img" aria-label="Premium badge">
+        <polygon class="badge-shape" points="20,3 25,14 37,15 28,23 31,35 20,29 9,35 12,23 3,15 15,14"/>
+      </svg>
+      <span id="statusText">Free User</span>
+    </div>
+  </header>
 
-<body class="antialiased min-h-screen pb-12">
+  <main>
+    <section id="product" class="section">
+      <div class="stage">
+        <article id="productCard" class="product-card" draggable="true" aria-label="Product card, draggable to cart">
+          <div id="preview" class="preview">
+            <div id="tilt" class="tilt">
+              <svg id="bottleSvg" viewBox="0 0 200 400" aria-label="Bottle preview">
+                <defs>
+                  <linearGradient id="bodyGrad" x1="0" x2="1">
+                    <stop offset="0" style="stop-color:var(--c2)"/>
+                    <stop offset=".45" style="stop-color:var(--c1)"/>
+                    <stop offset="1" style="stop-color:var(--c2)"/>
+                  </linearGradient>
+                  <linearGradient id="shineGrad" x1="0" x2="1">
+                    <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+                    <stop offset=".5" stop-color="#fff" stop-opacity=".7"/>
+                    <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <rect id="cap" data-part="Cap" x="72" y="8" width="56" height="42" rx="9"/>
+                <rect data-part="Neck" x="82" y="48" width="36" height="12" fill="#0f2a2e" opacity=".5"/>
+                <rect id="bottleBody" data-part="Body" x="48" y="58" width="104" height="290" rx="30" fill="url(#bodyGrad)"/>
+                <rect id="gloss" x="60" y="70" width="14" height="260" rx="7" fill="#fff"/>
+                <rect id="shine" x="48" y="58" width="104" height="290" rx="30" fill="url(#shineGrad)"/>
+                <text id="engravingText" data-part="Engraving" text-anchor="middle" transform="rotate(-90 100 200)" x="100" y="205"></text>
+              </svg>
+            </div>
+            <div class="glare"></div>
+            <span id="hoverTag" class="hover-tag">Move over the bottle</span>
+          </div>
+          <div class="info">
+            <h1 id="productName">Tidewell Flask</h1>
+            <p class="price" id="productPrice">$35.00</p>
+            <p id="productDescription" class="description">Double-wall stainless steel keeps drinks cold for 24 hours or hot for 12. Powder-coated body, leak-proof cap, and a laser-engraved name that never wears off.</p>
+          </div>
+          <p class="drag-hint">Drag this card into the cart</p>
+        </article>
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 py-6 mb-8 shadow-sm">
-        <div class="container mx-auto px-4 max-w-5xl">
-            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Product Configurator</h1>
-            <p class="text-slate-500 mt-1">Design your Lumina Smartwatch and drag it to your cart.</p>
+        <aside id="cartZone" class="cart-zone" aria-live="polite">
+          <h2>Your cart</h2>
+          <p id="cartEmpty">Drop your flask here.</p>
+          <ul id="cartList"></ul>
+          <p class="cart-total">Items: <strong id="cartCount">0</strong> &nbsp; Total: <strong id="cartTotal">$0.00</strong></p>
+        </aside>
+      </div>
+
+      <form id="customForm" class="panel" novalidate>
+        <h2>Customize <span class="tag free">Free</span></h2>
+        <fieldset>
+          <legend>Color</legend>
+          <div class="swatches" id="freeColors">
+            <button type="button" class="swatch" data-color="ocean" aria-pressed="true" title="Ocean"></button>
+            <button type="button" class="swatch" data-color="slate" aria-pressed="false" title="Slate"></button>
+            <button type="button" class="swatch" data-color="sand" aria-pressed="false" title="Sand"></button>
+          </div>
+        </fieldset>
+        <label>Size
+          <select id="variantSelect">
+            <option value="small">500 ml (+$0)</option>
+            <option value="medium" selected>750 ml (+$6)</option>
+            <option value="large">1 L (+$12)</option>
+          </select>
+        </label>
+        <fieldset>
+          <legend>Finish</legend>
+          <label class="inline"><input type="radio" name="finish" value="matte" checked> Matte</label>
+          <label class="inline"><input type="radio" name="finish" value="glossy"> Glossy</label>
+        </fieldset>
+        <label>Engraving name
+          <input id="engravingInput" type="text" maxlength="18" autocomplete="off" placeholder="e.g. Ayesha" required>
+        </label>
+        <p class="counter" id="engravingCounter">0 / 18</p>
+        <p class="error" id="engravingError" role="alert"></p>
+        <div class="actions">
+          <button type="submit" class="btn primary">Add to cart</button>
+          <button type="reset" class="btn ghost">Reset design</button>
         </div>
-    </header>
+        <p class="message" id="formMessage" role="status"></p>
+      </form>
+    </section>
 
-    <!-- Main Container -->
-    <main class="container mx-auto px-4 max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <section id="video" class="section">
+      <h2>See it made</h2>
+      <div class="video-wrap">
+        <video id="adVideo" controls preload="metadata" playsinline>
+          <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+          Your browser does not support video.
+        </video>
+      </div>
+      <p class="muted">Every Tidewell flask is engraved in our studio and ships within two days.</p>
+    </section>
 
-        <!-- Left: Watch Preview -->
-        <section class="lg:col-span-5 flex flex-col gap-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex items-center justify-center min-h-[500px] preview-box">
+    <section id="premium" class="section premium-section">
+      <h2>Premium studio <span class="tag gold">Premium</span></h2>
+      <p class="muted">Free users can preview what is inside. Upgrade once to unlock everything below.</p>
+      <div class="lock-message" id="lockMessage" role="alert" hidden>
+        <span id="lockText">This feature is premium only.</span>
+        <button type="button" class="btn gold" data-open-pay>Upgrade to premium</button>
+      </div>
+      <div class="premium-grid">
+        <fieldset>
+          <legend>Premium colors &amp; themes</legend>
+          <div class="swatches" id="premiumColors">
+            <button type="button" class="swatch premium-option" data-color="aurora" title="Aurora theme" aria-pressed="false"></button>
+            <button type="button" class="swatch premium-option" data-color="gold" title="Gold" aria-pressed="false"></button>
+            <button type="button" class="swatch premium-option" data-color="rose" title="Rose copper" aria-pressed="false"></button>
+          </div>
+        </fieldset>
+        <label class="premium-option toggle"><input type="checkbox" id="foilToggle"> Gold foil engraving</label>
+        <label class="premium-option toggle"><input type="checkbox" id="shimmerToggle"> Shimmer effect</label>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn gold" data-open-pay id="upgradeBtn">Upgrade for $9.99</button>
+      </div>
+    </section>
+  </main>
 
-                <!-- Draggable Watch -->
-                <div id="watch" class="watch-box" draggable="true">
-                    <div id="band" class="band"></div>
-                    <div class="screen-frame">
-                        <div id="glare" class="glare"></div>
-                        <div class="screen-text">
-                            <div class="clock">10:09</div>
-                            <div id="textPreview" class="engraving">Lumina</div>
-                        </div>
-                    </div>
-                </div>
+  <footer class="footer">
+    <button type="button" id="resetAll" class="btn ghost">Reset demo</button>
+    <span class="muted">Demo only. No real payment is taken or stored.</span>
+  </footer>
 
-            </div>
-            <div class="text-center text-sm text-slate-500 no-select">
-                <span class="inline-block bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                    💡 <strong>Pro Tip:</strong> Move your mouse over the watch to see the shine, drag it to the cart.
-                </span>
-            </div>
-        </section>
+  <dialog id="payDialog">
+    <div id="payView">
+      <button type="button" class="close" id="closePay" aria-label="Close">&times;</button>
+      <h2>Tidewell Premium</h2>
+      <p class="price">$9.99 <small>one-time</small></p>
+      <ul class="feature-list">
+        <li>Aurora, Gold and Rose copper themes</li>
+        <li>Gold foil engraving</li>
+        <li>Shimmer effect</li>
+      </ul>
+      <form id="payForm" novalidate>
+        <label>Cardholder name
+          <input id="cardName" autocomplete="off" placeholder="Name on card">
+          <span class="error" data-error-for="cardName"></span>
+        </label>
+        <label>Card number
+          <input id="cardNumber" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456" maxlength="19">
+          <span class="error" data-error-for="cardNumber"></span>
+        </label>
+        <div class="row">
+          <label>Expiry
+            <input id="cardExpiry" inputmode="numeric" autocomplete="off" placeholder="MM/YY" maxlength="5">
+            <span class="error" data-error-for="cardExpiry"></span>
+          </label>
+          <label>CVV
+            <input id="cardCvv" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4" type="password">
+            <span class="error" data-error-for="cardCvv"></span>
+          </label>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn gold">Upgrade now</button>
+          <button type="reset" class="btn ghost">Clear</button>
+        </div>
+        <p class="muted small">Use any fake test numbers. Nothing is sent anywhere.</p>
+      </form>
+    </div>
+    <div id="processingView" class="center" hidden>
+      <div class="spinner"></div>
+      <p>Processing payment…</p>
+    </div>
+    <div id="successView" class="center" hidden>
+      <div id="lottieBox" class="lottie-box"></div>
+      <h2>You are Premium!</h2>
+      <p>Premium features are now unlocked.</p>
+      <button type="button" class="btn primary" id="doneBtn">Start customizing</button>
+    </div>
+  </dialog>
 
-        <!-- Right: Settings Form & Cart -->
-        <section class="lg:col-span-7 flex flex-col gap-6">
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-900">Lumina Smartwatch</h2>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
-                            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">In Stock</span>
-                        </div>
-                    </div>
-                    <span class="text-2xl font-bold text-brand-600">$299</span>
-                </div>
-
-                <div id="infoText"
-                    class="text-slate-600 leading-relaxed text-sm p-3 bg-slate-50 rounded-lg border border-slate-100 selection:bg-brand-100 selection:text-brand-900">
-                    The Lumina Smartwatch redefines wearable tech. Featuring an always-on Retina display, advanced
-                    fitness tracking, and a premium aerospace-grade casing.
-                    <br><br>
-                    <em>Note: Copying or cutting this text is disabled.</em>
-                </div>
-            </div>
-
-            <!-- Configuration Form -->
-            <form id="watchForm"
-                class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-6">
-
-                <!-- Color Options -->
-                <div>
-                    <label for="colorPicker" class="block text-sm font-semibold text-slate-700 mb-2">Band Color</label>
-                    <div class="relative">
-                        <select id="colorPicker" name="color"
-                            class="w-full appearance-none bg-white border border-slate-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all cursor-pointer font-medium text-slate-700">
-                            <option value="black" data-gradient="linear-gradient(145deg, #1f2937, #030712)">Midnight Black</option>
-                            <option value="blue" data-gradient="linear-gradient(145deg, #2563eb, #1e3a8a)">Ocean Blue</option>
-                            <option value="red" data-gradient="linear-gradient(145deg, #dc2626, #7f1d1d)">Crimson Red</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom Text Input -->
-                <div>
-                    <div class="flex justify-between items-end mb-2">
-                        <label for="customText" class="block text-sm font-semibold text-slate-700">Custom Engraving</label>
-                        <span id="textCount" class="text-xs font-medium text-slate-500">0 / 12</span>
-                    </div>
-                    <input type="text" id="customText" name="engraving" maxlength="12" placeholder="e.g. LUMINA"
-                        class="w-full bg-white border border-slate-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-slate-900 placeholder:text-slate-400 uppercase"
-                        autocomplete="off">
-                </div>
-
-                <!-- Buttons -->
-                <div class="flex gap-4 pt-2 mt-2 border-t border-slate-100">
-                    <button type="submit"
-                        class="flex-1 bg-brand-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-brand-700 active:bg-brand-800 transition-colors shadow-sm">
-                        Submit Order
-                    </button>
-                    <button type="reset"
-                        class="px-6 bg-white border border-slate-300 text-slate-700 font-semibold py-3 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors">
-                        Reset
-                    </button>
-                </div>
-            </form>
-
-            <!-- Cart / Drop Zone -->
-            <div id="cart"
-                class="drop-target bg-white rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[160px]">
-                <div id="cartIcon" class="mb-3 text-slate-300 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto pointer-events-none" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                </div>
-                <h3 id="cartTitle" class="text-lg font-semibold text-slate-700 pointer-events-none">Cart</h3>
-                <p id="cartSubtitle" class="text-sm text-slate-500 mt-1 pointer-events-none">Drag the watch here to add it to your cart.</p>
-
-                <ul id="cartItemsList" class="hidden w-full mt-5 space-y-3 text-left"></ul>
-            </div>
-
-        </section>
-    </main>
-
-    <!-- Notification Container -->
-    <div id="notifications"></div>
-
-    <!-- JavaScript File -->
-    <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script src="script.js"></script>
 </body>
-
 </html>
