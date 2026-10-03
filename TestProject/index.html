@@ -16,6 +16,7 @@
       <a href="#video">Film</a>
       <a href="#premium">Premium</a>
     </nav>
+    <button type="button" id="themeToggle" class="theme-toggle" aria-label="Switch light or dark theme">🌙</button>
     <div class="status" id="statusPill" aria-live="polite">
       <svg id="premiumBadge" viewBox="0 0 40 40" width="26" height="26" role="img" aria-label="Premium badge">
         <polygon class="badge-shape" points="20,3 25,14 37,15 28,23 31,35 20,29 9,35 12,23 3,15 15,14"/>
@@ -25,6 +26,12 @@
   </header>
 
   <main>
+    <section class="intro">
+      <h2>Make it yours in under a minute</h2>
+      <ol class="steps">
+        <li>Pick a color and cap</li><li>Engrave a name</li><li>Drag the card to your cart</li>
+      </ol>
+    </section>
     <section id="product" class="section">
       <div class="stage">
         <article id="productCard" class="product-card" draggable="true" aria-label="Product card, draggable to cart">
@@ -80,6 +87,14 @@
             <button type="button" class="swatch" data-color="sand" aria-pressed="false" title="Sand"></button>
           </div>
         </fieldset>
+        <fieldset>
+          <legend>Cap color</legend>
+          <div class="swatches" id="capColors">
+            <button type="button" class="swatch" data-cap="graphite" aria-pressed="true" title="Graphite"></button>
+            <button type="button" class="swatch" data-cap="brass" aria-pressed="false" title="Brass"></button>
+            <button type="button" class="swatch" data-cap="pearl" aria-pressed="false" title="Pearl"></button>
+          </div>
+        </fieldset>
         <label>Size
           <select id="variantSelect">
             <option value="small">500 ml (+$0)</option>
@@ -95,10 +110,19 @@
         <label>Engraving name
           <input id="engravingInput" type="text" maxlength="18" autocomplete="off" placeholder="e.g. Ayesha" required>
         </label>
+        <div class="chips" id="nameChips" aria-label="Name ideas">
+          <button type="button" class="chip" data-name="Ayesha">Ayesha</button>
+          <button type="button" class="chip" data-name="Adventure">Adventure</button>
+          <button type="button" class="chip" data-name="Stay Hydrated">Stay Hydrated</button>
+        </div>
+        <label>Engraving font
+          <select id="fontSelect"><option value="sans">Bold sans</option><option value="serif">Classic serif</option><option value="mono">Typewriter</option></select>
+        </label>
         <p class="counter" id="engravingCounter">0 / 18</p>
         <p class="error" id="engravingError" role="alert"></p>
         <div class="actions">
           <button type="submit" class="btn primary">Add to cart</button>
+          <button type="button" id="spinBtn" class="btn gold">Spin 360°</button>
           <button type="reset" class="btn ghost">Reset design</button>
         </div>
         <p class="message" id="formMessage" role="status"></p>

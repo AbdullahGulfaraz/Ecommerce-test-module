@@ -12,7 +12,9 @@ const COLORS = {
   ocean: ["#2a8a94", "#145058"], slate: ["#5b6878", "#2c3440"], sand: ["#dcc89b", "#b39a68"],
   aurora: ["#7b5cff", "#19c7a5"], gold: ["#f0c85a", "#8a5f12"], rose: ["#e8a29a", "#a4524a"],
 };
-const DEFAULT_DESIGN = { color: "ocean", variant: "medium", finish: "matte", engraving: "", foil: false, shimmer: false };
+const CAPS = { graphite: "#1d2b2e", brass: "#b8862b", pearl: "#e9e4d8" };
+const FONTS = { sans: "inherit", serif: "Georgia, serif", mono: "Consolas, monospace" };
+const DEFAULT_DESIGN = { cap: "graphite", font: "sans", color: "ocean", variant: "medium", finish: "matte", engraving: "", foil: false, shimmer: false };
 
 let design = { ...DEFAULT_DESIGN };
 let isPremium = false;
@@ -52,6 +54,9 @@ function renderDesign() {
   engravingText.setAttribute("y", middle + 5);
   engravingText.setAttribute("x", 100);
   engravingText.textContent = design.engraving;
+  engravingText.style.fontFamily = FONTS[design.font];
+  document.documentElement.style.setProperty("--cap", CAPS[design.cap]);
+  $$("[data-cap]").forEach((swatch) => swatch.setAttribute("aria-pressed", swatch.dataset.cap === design.cap));
 
   bottleSvg.classList.toggle("glossy", design.finish === "glossy");
   bottleSvg.classList.toggle("foil", design.foil);
@@ -60,7 +65,7 @@ function renderDesign() {
   $("#productName").textContent = design.engraving ? `Tidewell Flask – ${design.engraving}` : "Tidewell Flask";
   $("#productPrice").textContent = money(currentPrice());
 
-  $$(".swatch").forEach((swatch) => swatch.setAttribute("aria-pressed", swatch.dataset.color === design.color));
+  $$(".swatch[data-color]").forEach((swatch) => swatch.setAttribute("aria-pressed", swatch.dataset.color === design.color));
   const length = design.engraving.length;
   const counter = $("#engravingCounter");
   counter.textContent = `${length} / ${MAX_ENGRAVING}`;
@@ -147,9 +152,10 @@ function renderCart() {
   $("#cartList").innerHTML = "";
   cart.forEach((item) => {
     const row = document.createElement("li");
-    row.innerHTML = "<span></span><strong></strong>";
-    row.firstChild.textContent = item.label;
-    row.lastChild.textContent = money(item.price);
+    row.innerHTML = "<span></span><strong></strong><button type=\"button\" class=\"remove\" aria-label=\"Remove item\">✕</button>";
+    row.children[0].textContent = item.label;
+    row.children[1].textContent = money(item.price);
+    row.children[2].dataset.index = cart.indexOf(item);
     $("#cartList").appendChild(row);
   });
   $("#cartEmpty").hidden = cart.length > 0;
@@ -270,7 +276,7 @@ $("#payForm").addEventListener("submit", (event) => {
   if (!validatePayment()) return;
   showView("processing");
   $("#payForm").reset(); // card data is never kept
-  setTimeout(() => { activatePremium(); showView("success"); playSuccessAnimation(); }, 2000);
+  setTimeout(() => { activatePremium(); showView("success"); playSuccessAnimation(); launchConfetti(); }, 2000);
 });
 $("#payForm").addEventListener("reset", () => {
   $$("#payForm .error").forEach((el) => (el.textContent = ""));
@@ -327,3 +333,54 @@ $("#resetAll").addEventListener("click", () => {
 /* ---------- Init ---------- */
 renderDesign();
 renderCart();
+
+/* ---------- Extra interactions ---------- */
+$("#capColors").addEventListener("click", (event) => {
+  const swatch = event.target.closest("[data-cap]");
+  if (swatch) { design.cap = swatch.dataset.cap; renderDesign(); }
+});
+$("#fontSelect").addEventListener("change", (event) => { design.font = event.target.value; renderDesign(); });
+
+$("#nameChips").addEventListener("click", (event) => {
+  const chip = event.target.closest(".chip");
+  if (!chip) return;
+  const input = $("#engravingInput");
+  input.value = chip.dataset.name.slice(0, MAX_ENGRAVING);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.focus();
+});
+
+$("#spinBtn").addEventListener("click", () =>
+  $("#tilt").animate([{ transform: "rotateY(0)" }, { transform: "rotateY(360deg)" }], { duration: 1400, easing: "ease-in-out" }));
+
+$("#cartList").addEventListener("click", (event) => {
+  const button = event.target.closest(".remove");
+  if (!button) return;
+  cart.splice(Number(button.dataset.index), 1);
+  renderCart();
+  showToast("Item removed from cart.");
+});
+
+$("#themeToggle").addEventListener("click", (event) => {
+  const dark = document.documentElement.dataset.theme !== "dark";
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  event.currentTarget.textContent = dark ? "☀️" : "🌙";
+});
+
+function launchConfetti() {
+  const layer = document.createElement("div");
+  layer.className = "confetti-layer";
+  payDialog.appendChild(layer);
+  const palette = ["#b8862b", "#1f6f78", "#7b5cff", "#e8a29a", "#19c7a5"];
+  for (let i = 0; i < 45; i++) {
+    const piece = document.createElement("i");
+    piece.style.background = palette[i % palette.length];
+    piece.style.left = `${Math.random() * 100}%`;
+    layer.appendChild(piece);
+    piece.animate(
+      [{ transform: "translateY(-20px) rotate(0)", opacity: 1 },
+       { transform: `translate(${(Math.random() - 0.5) * 120}px, 520px) rotate(${Math.random() * 720}deg)`, opacity: 0 }],
+      { duration: 1600 + Math.random() * 1200, delay: Math.random() * 300, easing: "ease-in" });
+  }
+  setTimeout(() => layer.remove(), 3400);
+}
